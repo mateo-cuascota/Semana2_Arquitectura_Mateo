@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NovaStore | Catálogo de productos</title>
+    <style>
+        :root {
+            --primary: #7c3aed;
+            --secondary: #06b6d4;
+            --dark: #172033;
+            --muted: #64748b;
+            --surface: #ffffff;
+            --background: #f5f3ff;
+            --success: #16a34a;
+            --warning: #ea580c;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+            color: var(--dark);
+            background:
+                radial-gradient(circle at 10% 0%, #ddd6fe 0, transparent 35%),
+                radial-gradient(circle at 95% 15%, #cffafe 0, transparent 30%),
+                var(--background);
+        }
+
+        .shell { width: min(1120px, calc(100% - 40px)); margin: auto; }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 28px 0;
+        }
+
+        .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 20px; }
+        .brand-mark {
+            display: grid;
+            place-items: center;
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            color: white;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            box-shadow: 0 8px 20px #7c3aed55;
+        }
+
+        .api-status { color: var(--success); font-size: 13px; font-weight: 700; }
+        .api-status::before { content: "●"; margin-right: 7px; }
+
+        .hero {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 24px;
+            align-items: end;
+            padding: 42px 0 30px;
+        }
+
+        .eyebrow { margin: 0 0 10px; color: var(--primary); font-size: 12px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; }
+        h1 { margin: 0; max-width: 680px; font-size: clamp(36px, 6vw, 64px); line-height: .98; letter-spacing: -3px; }
+        .subtitle { max-width: 620px; margin: 18px 0 0; color: var(--muted); font-size: 17px; line-height: 1.6; }
+
+        .btn {
+            border: 0;
+            border-radius: 14px;
+            padding: 15px 22px;
+            color: white;
+            background: linear-gradient(135deg, var(--primary), #4f46e5);
+            box-shadow: 0 10px 20px #7c3aed44;
+            font: inherit;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform .2s, box-shadow .2s, opacity .2s;
+        }
+
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 14px 25px #7c3aed55; }
+        .btn:disabled { opacity: .7; cursor: wait; transform: none; }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin: 12px 0 30px;
+        }
+
+        .metric, .empty, .error { background: #ffffffc9; border: 1px solid #ffffff; border-radius: 18px; box-shadow: 0 10px 30px #312e8112; }
+        .metric { padding: 18px 20px; }
+        .metric-label { color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; }
+        .metric-value { display: block; margin-top: 6px; font-size: 24px; font-weight: 850; }
+
+        .section-title { display: flex; justify-content: space-between; align-items: center; margin: 30px 0 16px; }
+        .section-title h2 { margin: 0; font-size: 22px; }
+        #mensaje { margin: 0; color: var(--muted); font-size: 14px; }
+
+        .productos { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 18px; padding-bottom: 50px; }
+
+        .producto {
+            position: relative;
+            overflow: hidden;
+            padding: 24px;
+            background: var(--surface);
+            border: 1px solid #e9d5ff;
+            border-radius: 22px;
+            box-shadow: 0 12px 30px #312e8112;
+            animation: appear .45s ease both;
+            transition: transform .2s, box-shadow .2s;
+        }
+
+        .producto:hover { transform: translateY(-5px); box-shadow: 0 18px 35px #312e8124; }
+        .producto::before { content: ""; position: absolute; inset: 0 0 auto; height: 5px; background: linear-gradient(90deg, var(--primary), var(--secondary)); }
+        .product-icon { font-size: 38px; margin-bottom: 18px; }
+        .producto h3 { margin: 0 0 9px; font-size: 20px; }
+        .categoria { color: var(--muted); font-size: 13px; }
+        .precio { margin: 20px 0 0; color: var(--primary); font-size: 25px; font-weight: 850; }
+
+        .empty, .error { padding: 34px; text-align: center; color: var(--muted); }
+        .error { color: #b91c1c; border-color: #fecaca; background: #fff1f2; }
+        .badge { display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; }
+        .badge.fast { color: #166534; background: #dcfce7; }
+        .badge.slow { color: #9a3412; background: #ffedd5; }
+
+        @keyframes appear { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        @media (max-width: 700px) { .hero { grid-template-columns: 1fr; } .metrics { grid-template-columns: 1fr; } header { padding-top: 18px; } }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <header>
+            <div class="brand"><span class="brand-mark">✦</span> NovaStore</div>
+            <div class="api-status">API conectada</div>
+        </header>
+
+        <main>
+            <section class="hero">
+                <div>
+                    <p class="eyebrow">Arquitectura · Proxy · Caché</p>
+                    <h1>Productos que responden a la velocidad de tu idea.</h1>
+                    <p class="subtitle">Explora nuestro catálogo y observa en tiempo real cómo la caché de Spring Boot reduce la latencia de las consultas repetidas.</p>
+                </div>
+                <button id="cargarProductos" class="btn">⚡ Cargar productos</button>
+            </section>
+
+            <section class="metrics">
+                <div class="metric"><span class="metric-label">Tiempo de respuesta</span><strong id="tiempo" class="metric-value">—</strong></div>
+                <div class="metric"><span class="metric-label">Estado de caché</span><strong id="estadoCache" class="metric-value">Esperando</strong></div>
+                <div class="metric"><span class="metric-label">Productos encontrados</span><strong id="cantidad" class="metric-value">—</strong></div>
+            </section>
+
+            <div class="section-title">
+                <h2>Catálogo destacado</h2>
+                <p id="mensaje">Presiona el botón para consultar la API.</p>
+            </div>
+            <section id="productos" class="productos">
+                <div class="empty">Tus productos aparecerán aquí.</div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:8080/api/productos";
+        const boton = document.getElementById("cargarProductos");
+        const mensaje = document.getElementById("mensaje");
+        const contenedor = document.getElementById("productos");
+        const tiempo = document.getElementById("tiempo");
+        const estadoCache = document.getElementById("estadoCache");
+        const cantidad = document.getElementById("cantidad");
+
+        boton.addEventListener("click", cargarProductos);
+
+        async function cargarProductos() {
+            boton.disabled = true;
+            boton.textContent = "⏳ Consultando...";
+            mensaje.textContent = "Consultando el servicio...";
+            contenedor.innerHTML = "";
+            const inicio = performance.now();
+
+            try {
+                // Desactiva solo la caché del navegador para medir la caché del backend.
+                const respuesta = await fetch(API_URL, { cache: "no-store" });
+                if (!respuesta.ok) throw new Error(`Error HTTP: ${respuesta.status}`);
+
+                const productos = await respuesta.json();
+                const milisegundos = Math.round(performance.now() - inicio);
+                const respuestaRapida = milisegundos < 800;
+
+                mostrarProductos(productos);
+                tiempo.textContent = `${milisegundos} ms`;
+                cantidad.textContent = productos.length;
+                estadoCache.textContent = respuestaRapida ? "Activa" : "Servicio real";
+                estadoCache.className = `metric-value badge ${respuestaRapida ? "fast" : "slow"}`;
+                mensaje.textContent = respuestaRapida
+                    ? "Respuesta rápida: probablemente proviene de la caché del Proxy."
+                    : "Primera consulta: se ejecutó el servicio real con latencia simulada.";
+            } catch (error) {
+                tiempo.textContent = "Error";
+                estadoCache.textContent = "Sin conexión";
+                estadoCache.className = "metric-value";
+                mensaje.textContent = "No se pudo conectar con Spring Boot. Verifica que esté ejecutándose y que CORS esté configurado.";
+                contenedor.innerHTML = `<div class="error">${error.message}</div>`;
+                console.error(error);
+            } finally {
+                boton.disabled = false;
+                boton.textContent = "⚡ Cargar productos";
+            }
+        }
+
+        function mostrarProductos(productos) {
+            const iconos = ["⌨️", "🖥️", "🖱️", "💻", "🎧"];
+            contenedor.innerHTML = productos.map((producto, indice) => `
+                <article class="producto" style="animation-delay: ${indice * 80}ms">
+                    <div class="product-icon">${iconos[indice % iconos.length]}</div>
+                    <h3>${producto.nombre}</h3>
+                    <div class="categoria">${producto.categoria || "Producto destacado"}</div>
+                    <div class="precio">$${Number(producto.precio).toFixed(2)}</div>
+                </article>
+            `).join("");
+        }
+    </script>
+</body>
+</html>
